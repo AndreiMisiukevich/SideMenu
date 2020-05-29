@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:side="clr-namespace:SideMenu;assembly=SideMenu"
+             x:Class="SideMenuSample.MainPage">
+
+    <side:SideMenuView>
+        <!--MainView-->
+        <ContentView BackgroundColor="Black"/>
+        <!--LeftMenu-->
+        <ContentView side:SideMenuView.Place="LeftMenu"
+                     WidthRequest="200"
+                     BackgroundColor="Orange" />
+        <!--RightMenu-->
+        <!--<ContentView side:SideMenuView.Place="RightMenu"
+                     WidthRequest="100"
+                     BackgroundColor="Gold" />-->
+    </side:SideMenuView>
+</ContentPage>
