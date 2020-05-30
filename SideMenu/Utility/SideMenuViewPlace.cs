@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 namespace SideMenu
 {
     public enum SideMenuViewPlace

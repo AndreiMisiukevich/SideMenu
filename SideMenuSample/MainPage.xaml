@@ -9,11 +9,11 @@
         <ContentView BackgroundColor="Black"/>
         <!--LeftMenu-->
         <ContentView side:SideMenuView.Place="LeftMenu"
-                     WidthRequest="200"
+                     WidthRequest="250"
                      BackgroundColor="Orange" />
         <!--RightMenu-->
-        <!--<ContentView side:SideMenuView.Place="RightMenu"
-                     WidthRequest="100"
-                     BackgroundColor="Gold" />-->
+        <ContentView side:SideMenuView.Place="RightMenu"
+                     WidthRequest="250"
+                     BackgroundColor="Gold" />
     </side:SideMenuView>
 </ContentPage>

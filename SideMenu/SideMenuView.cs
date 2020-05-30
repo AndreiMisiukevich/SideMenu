@@ -10,13 +10,21 @@ namespace SideMenu
 {
     public class SideMenuView : AbsoluteLayout
     {
-        private static readonly double SwipeThresholdDistance = 17;
+        private const string AnimationName = nameof(SideMenuView);
 
-        private static readonly TimeSpan SwipeThresholdTime = TimeSpan.FromMilliseconds(Device.RuntimePlatform == Device.Android ? 100 : 60);
+        private const uint AnimationRate = 16;
+
+        private const uint AnimationLength = 250;
+
+        private const double SwipeThresholdDistance = 17;
+
+        private const double AcceptMoveThresholdPercentage = 0.3;
+
+        private static readonly Easing AnimationEasing = Easing.CubicInOut;
+
+        public static readonly TimeSpan SwipeThresholdTime = TimeSpan.FromMilliseconds(Device.RuntimePlatform == Device.Android ? 100 : 60);
 
         public static readonly BindableProperty DiffProperty = BindableProperty.Create(nameof(Diff), typeof(double), typeof(SideMenuView), 0.0, BindingMode.OneWayToSource);
-
-        public static readonly BindableProperty CurrentGestureDiffProperty = BindableProperty.Create(nameof(CurrentGestureDiff), typeof(double), typeof(SideMenuView), 0.0, BindingMode.OneWayToSource);
 
         public static readonly BindableProperty IsLeftMenuGestureEnabledProperty = BindableProperty.Create(nameof(IsLeftMenuGestureEnabled), typeof(bool), typeof(SideMenuView), true);
 
@@ -40,26 +48,33 @@ namespace SideMenu
 
         private View _rightMenu;
 
+        private View _activeMenu;
+
+        private View _inactiveMenu;
+
         private bool _isPanStarted;
 
         private bool _isGestureDirectionResolved;
 
         public SideMenuView()
         {
-            _panGesture.PanUpdated += OnPanUpdated;
-            GestureRecognizers.Add(_panGesture);
+            if (Device.RuntimePlatform != Device.Android)
+            {
+                _panGesture.PanUpdated += OnPanUpdated;
+                GestureRecognizers.Add(_panGesture);
+            }
         }
+
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public double PreviousDiff { get; set; }
+
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public double CurrentGestureDiff { get; set; }
 
         public double Diff
         {
             get => (double)GetValue(DiffProperty);
             set => SetValue(DiffProperty, value);
-        }
-
-        public double CurrentGestureDiff
-        {
-            get => (double)GetValue(CurrentGestureDiffProperty);
-            set => SetValue(CurrentGestureDiffProperty, value);
         }
 
         public bool IsLeftMenuGestureEnabled
@@ -135,8 +150,9 @@ namespace SideMenu
             {
                 return;
             }
-
-            //TODO: handle swipe
+            _isPanStarted = true;
+            OnTouchEnded();
+            //TODO: Force swipe
         }
 
         protected override void OnAdded(View view)
@@ -178,18 +194,7 @@ namespace SideMenu
                 return;
             }
 
-            var activeMenu = _leftMenu;
-            var inactiveMenu = _rightMenu;
-            if (Diff + diff < 0)
-            {
-                activeMenu = _rightMenu;
-                inactiveMenu = _leftMenu;
-            }
-            if (inactiveMenu != null)
-            {
-                LowerChild(inactiveMenu);
-            }
-
+            PopulateDiffItems(diff);
             var absDiff = Abs(diff);
             var absVerticalDiff = Abs(verticalDiff);
             if (!_isGestureDirectionResolved && Max(absDiff, absVerticalDiff) > VerticalCancelingGestureThreshold)
@@ -197,60 +202,75 @@ namespace SideMenu
                 absVerticalDiff *= 2.5;
                 if (absVerticalDiff >= absDiff)
                 {
-                    diff = 0;
                     _isPanStarted = false;
+                    OnTouchEnded();
+                    return;
                 }
                 _isGestureDirectionResolved = true;
             }
-            else if (activeMenu != null)
+            else if (_activeMenu == null)
             {
-                var value = Diff + diff;
-                diff = Sign(value) * Min(Abs(value), activeMenu.Width) - Diff;
+                //TODO: Store zero diff
             }
-            else
-            {
-                diff = -Diff;
-            }
-            PopulateDiffItems(diff);
-            _mainView.TranslationX = Diff + diff;
+
+            _mainView.AbortAnimation(AnimationName);
+            UpdateDiff(PreviousDiff + diff, false);
         }
 
-        private async void OnTouchEnded()
+        private void OnTouchEnded()
         {
             if (!_isPanStarted)
             {
                 return;
             }
-
             _isPanStarted = false;
-            var diff = CurrentGestureDiff;
-            var absDiff = Abs(diff);
-            Diff += diff;
+
+            var diff = Diff;
+            PreviousDiff = diff;
             CleanDiffItems();
-            var isNextSelected = default(bool?);
+            var isMenuOpening = default(bool?);
 
-            //if (absDiff > RealMoveDistance || CheckPanSwipe())
-            //{
-            //    isNextSelected = diff < 0;
-            //}
-
-            _timeDiffItems.Clear();
-
-            if (isNextSelected.HasValue)
+            var menuWidth = _activeMenu?.Width ?? 0;
+            if (Abs(diff) > menuWidth * AcceptMoveThresholdPercentage || CheckIsSwipe())
             {
-               //TODO: Handle move
-            }
-            else
-            {
-                //TODO: Handle reset
+                isMenuOpening = diff > 0;
+                if(_activeMenu == _rightMenu)
+                {
+                    isMenuOpening = !isMenuOpening;
+                }
             }
 
-            //TEST
-            await _mainView.TranslateTo(0, _mainView.Y);
-            Diff = 0;
+            var end = isMenuOpening.HasValue
+                ? Sign(diff) * menuWidth
+                : 0;
+
+            _mainView.Animate(AnimationName,
+                new Animation(v => UpdateDiff(v, true), Diff, end), AnimationRate, AnimationLength, AnimationEasing);
         }
 
-        private bool CheckPanSwipe()
+        private void UpdateDiff(double diff, bool shouldUpdatePreviousDiff) {
+            _activeMenu = _leftMenu;
+            _inactiveMenu = _rightMenu;
+            if (diff < 0)
+            {
+                _activeMenu = _rightMenu;
+                _inactiveMenu = _leftMenu;
+            }
+            if (_inactiveMenu != null && _activeMenu != null)
+            {
+                LowerChild(_inactiveMenu);
+            }
+
+            diff = Sign(diff) * Min(Abs(diff), _activeMenu?.Width ?? 0);
+            Diff = diff;
+            if (shouldUpdatePreviousDiff)
+            {
+                PreviousDiff = diff;
+            }
+            _mainView.TranslationX = diff;
+        }
+
+        private bool CheckIsSwipe()
         {
             if (_timeDiffItems.Count < 2)
             {
@@ -259,6 +279,7 @@ namespace SideMenu
 
             var lastItem = _timeDiffItems.LastOrDefault();
             var firstItem = _timeDiffItems.FirstOrDefault();
+            _timeDiffItems.Clear();
 
             var distDiff = lastItem.Diff - firstItem.Diff;
 
