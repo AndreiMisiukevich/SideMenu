@@ -14,7 +14,7 @@ namespace SideMenu
 
         private const uint AnimationRate = 16;
 
-        private const uint AnimationLength = 250;
+        private const uint AnimationLength = 220;
 
         private const double SwipeThresholdDistance = 17;
 
@@ -32,11 +32,13 @@ namespace SideMenu
 
         public static readonly BindableProperty GestureThresholdProperty = BindableProperty.Create(nameof(GestureThreshold), typeof(double), typeof(SideMenuView), 7.0);
 
-        public static readonly BindableProperty VerticalCancelingGestureThresholdProperty = BindableProperty.Create(nameof(VerticalCancelingGestureThreshold), typeof(double), typeof(SideMenuView), double.PositiveInfinity);
+        public static readonly BindableProperty VerticalCancelingGestureThresholdProperty = BindableProperty.Create(nameof(VerticalCancelingGestureThreshold), typeof(double), typeof(SideMenuView), 1.0);
 
         public static readonly BindableProperty ShouldThrottleGestureProperty = BindableProperty.Create(nameof(ShouldThrottleGesture), typeof(bool), typeof(SideMenuView), false);
 
-        public static readonly BindableProperty PlaceProperty = BindableProperty.CreateAttached(nameof(GetPlace), typeof(SideMenuViewPlace), typeof(SideMenuView), default(SideMenuViewPlace));
+        public static readonly BindableProperty StateProperty = BindableProperty.Create(nameof(State), typeof(SideMenuViewState), typeof(SideMenuView), SideMenuViewState.Default);
+
+        public static readonly BindableProperty PlaceProperty = BindableProperty.CreateAttached(nameof(GetPlace), typeof(SideMenuViewPlace), typeof(SideMenuView), SideMenuViewPlace.MainView);
 
         private readonly PanGestureRecognizer _panGesture = new PanGestureRecognizer();
 
@@ -58,11 +60,12 @@ namespace SideMenu
 
         public SideMenuView()
         {
-            if (Device.RuntimePlatform != Device.Android)
+            if (Device.RuntimePlatform == Device.Android)
             {
-                _panGesture.PanUpdated += OnPanUpdated;
-                GestureRecognizers.Add(_panGesture);
+                return;
             }
+            _panGesture.PanUpdated += OnPanUpdated;
+            GestureRecognizers.Add(_panGesture);
         }
 
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -70,6 +73,9 @@ namespace SideMenu
 
         [EditorBrowsable(EditorBrowsableState.Never)]
         public double CurrentGestureDiff { get; set; }
+
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public SideMenuViewState CurrentGestureState { get; set; }
 
         public double Diff
         {
@@ -95,16 +101,22 @@ namespace SideMenu
             set => SetValue(GestureThresholdProperty, value);
         }
 
+        public double VerticalCancelingGestureThreshold
+        {
+            get => (double)GetValue(VerticalCancelingGestureThresholdProperty);
+            set => SetValue(VerticalCancelingGestureThresholdProperty, value);
+        }
+
         public bool ShouldThrottleGesture
         {
             get => (bool)GetValue(ShouldThrottleGestureProperty);
             set => SetValue(ShouldThrottleGestureProperty, value);
         }
 
-        public double VerticalCancelingGestureThreshold
+        public SideMenuViewState State
         {
-            get => (double)GetValue(VerticalCancelingGestureThresholdProperty);
-            set => SetValue(VerticalCancelingGestureThresholdProperty, value);
+            get => (SideMenuViewState)GetValue(StateProperty);
+            set => SetValue(StateProperty, value);
         }
 
         public static SideMenuViewPlace GetPlace(BindableObject bindable)
@@ -151,6 +163,7 @@ namespace SideMenu
                 return;
             }
             _isPanStarted = true;
+            SetActiveView(swipeDirection == SwipeDirection.Right);
             OnTouchEnded();
             //TODO: Force swipe
         }
@@ -158,13 +171,13 @@ namespace SideMenu
         protected override void OnAdded(View view)
         {
             base.OnAdded(view);
-            StoreView(view);
+            HandleViewAdded(view);
         }
 
         protected override void OnRemoved(View view)
         {
             base.OnRemoved(view);
-            ClearView(view);
+            HandleViewRemoved(view);
         }
 
         protected override void LayoutChildren(double x, double y, double width, double height)
@@ -227,31 +240,58 @@ namespace SideMenu
 
             var diff = Diff;
             PreviousDiff = diff;
+            State = CurrentGestureState;
             CleanDiffItems();
-            var isMenuOpening = default(bool?);
 
-            var menuWidth = _activeMenu?.Width ?? 0;
-            if (Abs(diff) > menuWidth * AcceptMoveThresholdPercentage || CheckIsSwipe())
-            {
-                isMenuOpening = diff > 0;
-                if(_activeMenu == _rightMenu)
-                {
-                    isMenuOpening = !isMenuOpening;
-                }
-            }
+            //TODO: CheckSwipe();
 
-            var end = isMenuOpening.HasValue
-                ? Sign(diff) * menuWidth
-                : 0;
+            var end = Sign((int)State) * (_activeMenu?.Width ?? double.PositiveInfinity);
 
             _mainView.Animate(AnimationName,
                 new Animation(v => UpdateDiff(v, true), Diff, end), AnimationRate, AnimationLength, AnimationEasing);
         }
 
         private void UpdateDiff(double diff, bool shouldUpdatePreviousDiff) {
+            diff = Sign(diff) * Min(Abs(diff), _activeMenu?.Width ?? 0);
+            Diff = diff;
+            SetActiveView(diff >= 0);
+            SetState(diff);
+            if (shouldUpdatePreviousDiff)
+            {
+                PreviousDiff = diff;
+            }
+            _mainView.TranslationX = diff;
+        }
+
+        private void SetState(double diff)
+        {
+            var menuWidth = _activeMenu?.Width ?? double.PositiveInfinity;
+            var moveThreshold = (_activeMenu?.Width ?? double.PositiveInfinity) * AcceptMoveThresholdPercentage;
+            var absDiff = Abs(diff);
+            var state = State;
+            if (Sign(diff) != (int)state)
+            {
+                state = SideMenuViewState.Default;
+            }
+            if (state == SideMenuViewState.Default && absDiff <= moveThreshold ||
+                state != SideMenuViewState.Default && absDiff < menuWidth - moveThreshold)
+            {
+                CurrentGestureState = SideMenuViewState.Default;
+                return;
+            }
+            if (diff >= 0)
+            {
+                CurrentGestureState = SideMenuViewState.LeftMenuShown;
+                return;
+            }
+            CurrentGestureState = SideMenuViewState.RightMenuShown;
+        }
+
+        private void SetActiveView(bool isLeft)
+        {
             _activeMenu = _leftMenu;
             _inactiveMenu = _rightMenu;
-            if (diff < 0)
+            if (!isLeft)
             {
                 _activeMenu = _rightMenu;
                 _inactiveMenu = _leftMenu;
@@ -260,14 +300,6 @@ namespace SideMenu
             {
                 LowerChild(_inactiveMenu);
             }
-
-            diff = Sign(diff) * Min(Abs(diff), _activeMenu?.Width ?? 0);
-            Diff = diff;
-            if (shouldUpdatePreviousDiff)
-            {
-                PreviousDiff = diff;
-            }
-            _mainView.TranslationX = diff;
         }
 
         private bool CheckIsSwipe()
@@ -326,7 +358,7 @@ namespace SideMenu
             }
         }
 
-        private void StoreView(View view)
+        private void HandleViewAdded(View view)
         {
             switch (GetPlace(view))
             {
@@ -344,7 +376,7 @@ namespace SideMenu
             }
         }
 
-        private void ClearView(View view)
+        private void HandleViewRemoved(View view)
         {
             switch (GetPlace(view))
             {
@@ -357,6 +389,14 @@ namespace SideMenu
                 case SideMenuViewPlace.RightMenu:
                     _rightMenu = null;
                     return;
+            }
+            if(_activeMenu == view)
+            {
+                _activeMenu = null;
+            }
+            if(_inactiveMenu == view)
+            {
+                _inactiveMenu = view;
             }
         }
 
