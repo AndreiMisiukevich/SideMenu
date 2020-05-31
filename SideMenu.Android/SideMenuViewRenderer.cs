@@ -32,9 +32,7 @@ namespace SideMenu.Android
 
         private GestureDetector _gestureDetector;
 
-        public SideMenuViewRenderer(Context context) : base(context)
-        {
-        }
+        public SideMenuViewRenderer(Context context) : base(context) { }
 
         public static void Preserve() { }
 
@@ -42,7 +40,7 @@ namespace SideMenu.Android
         {
             DetectEvent(ev);
 
-            if ((!Element.IsLeftMenuGestureEnabled && !Element.IsRightMenuGestureEnabled) || Element.ShouldThrottleGesture)
+            if (Element.ShouldThrottleGesture)
             {
                 base.OnInterceptTouchEvent(ev);
                 return false;
