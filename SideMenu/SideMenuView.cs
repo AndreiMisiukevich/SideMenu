@@ -424,10 +424,10 @@ namespace SideMenu
                     SetupMainViewLayout(_mainView = view);
                     break;
                 case SideMenuViewPlace.LeftMenu:
-                    SetupMenuLayout(_leftMenu = view, new Rectangle(0, 0, -1, 1));
+                    SetupMenuLayout(_leftMenu = view, true);
                     break;
                 case SideMenuViewPlace.RightMenu:
-                    SetupMenuLayout(_rightMenu = view, new Rectangle(1, 0, -1, 1));
+                    SetupMenuLayout(_rightMenu = view, false);
                     break;
                 default:
                     return;
@@ -454,7 +454,7 @@ namespace SideMenu
             }
             if(_inactiveMenu == view)
             {
-                _inactiveMenu = view;
+                _inactiveMenu = null;
             }
         }
 
@@ -464,20 +464,10 @@ namespace SideMenu
             SetLayoutBounds(view, new Rectangle(0, 0, 1, 1));
         }
 
-        private void SetupMenuLayout(View view, Rectangle bounds)
+        private void SetupMenuLayout(View view, bool isLeft)
         {
             SetLayoutFlags(view, AbsoluteLayoutFlags.PositionProportional | AbsoluteLayoutFlags.HeightProportional);
-            SetLayoutBounds(view, bounds);
-        }
-
-        private void InvokeOnMainThreadIfNeeded(Action action)
-        {
-            if (!Device.IsInvokeRequired)
-            {
-                action.Invoke();
-                return;
-            }
-            Device.BeginInvokeOnMainThread(action);
+            SetLayoutBounds(view, new Rectangle(isLeft ? 0: 1, 0, -1, 1));
         }
 
         #endregion
