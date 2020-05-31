@@ -6,14 +6,25 @@
 
     <side:SideMenuView>
         <!--MainView-->
-        <ContentView BackgroundColor="Black"/>
+        <ScrollView BackgroundColor="Black">
+            <StackLayout HeightRequest="2000">
+            </StackLayout>
+        </ScrollView>
         <!--LeftMenu-->
-        <ContentView side:SideMenuView.Place="LeftMenu"
-                     WidthRequest="250"
-                     BackgroundColor="Orange" />
+        <ScrollView side:SideMenuView.Place="LeftMenu"
+                    BackgroundColor="Orange"
+                    WidthRequest="250">
+            <StackLayout HeightRequest="2000">
+
+            </StackLayout>
+        </ScrollView>
         <!--RightMenu-->
-        <ContentView side:SideMenuView.Place="RightMenu"
-                     WidthRequest="250"
-                     BackgroundColor="Gold" />
+        <ScrollView side:SideMenuView.Place="RightMenu"
+                    BackgroundColor="Gold"
+                    WidthRequest="250">
+            <StackLayout HeightRequest="2000">
+
+            </StackLayout>
+        </ScrollView>
     </side:SideMenuView>
 </ContentPage>
