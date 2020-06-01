@@ -72,8 +72,8 @@ namespace SideMenu.iOS
         private void OnSwiped(UISwipeGestureRecognizer gesture)
         {
             var swipeDirection = gesture.Direction == UISwipeGestureRecognizerDirection.Left
-                                ? SwipeDirection.Left
-                                : SwipeDirection.Right;
+                ? SwipeDirection.Left
+                : SwipeDirection.Right;
 
             Element?.OnSwiped(swipeDirection);
         }

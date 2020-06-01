@@ -30,9 +30,12 @@ namespace SideMenu.Android
 
         private GestureDetector _gestureDetector;
 
-        public SideMenuViewRenderer(Context context) : base(context) { }
+        public SideMenuViewRenderer(Context context) : base(context) 
+            => Density = context.Resources.DisplayMetrics.Density;
 
         public static void Preserve() { }
+
+        private float Density { get; }
 
         public override bool OnInterceptTouchEvent(MotionEvent ev)
         {
@@ -51,7 +54,7 @@ namespace SideMenu.Android
                     return false;
                 }
 
-                return SetIsTouchHandled(GetTotalX(ev), GetTotalY(ev));
+                return CheckIsTouchHandled(GetTotalX(ev), GetTotalY(ev));
             }
 
             HandleDownUpEvents(ev);
@@ -65,7 +68,7 @@ namespace SideMenu.Android
             {
                 var xDelta = GetTotalX(e);
                 var yDelta = GetTotalY(e);
-                SetIsTouchHandled(xDelta, yDelta);
+                CheckIsTouchHandled(xDelta, yDelta);
 
                 if (Abs(yDelta) <= Abs(xDelta))
                 {
@@ -108,7 +111,7 @@ namespace SideMenu.Android
             }
         }
 
-        private bool SetIsTouchHandled(float xDelta, float yDelta)
+        private bool CheckIsTouchHandled(float xDelta, float yDelta)
         {
             var xDeltaAbs = Abs(xDelta);
             var yDeltaAbs = Abs(yDelta);
@@ -168,9 +171,9 @@ namespace SideMenu.Android
         private PanUpdatedEventArgs GetPanUpdatedEventArgs(GestureStatus status, double totalX = 0, double totalY = 0)
             => new PanUpdatedEventArgs(status, 0, totalX, totalY);
 
-        private float GetTotalX(MotionEvent ev) => (ev.GetX() - _startX.GetValueOrDefault()) / Context.Resources.DisplayMetrics.Density;
+        private float GetTotalX(MotionEvent ev) => (ev.GetX() - _startX.GetValueOrDefault()) / Density;
 
-        private float GetTotalY(MotionEvent ev) => (ev.GetY() - _startY.GetValueOrDefault()) / Context.Resources.DisplayMetrics.Density;
+        private float GetTotalY(MotionEvent ev) => (ev.GetY() - _startY.GetValueOrDefault()) / Density;
 
         private void SetGestureDetector()
             => _gestureDetector = new GestureDetector(Context, new SideMenuGestureListener(OnSwiped));
