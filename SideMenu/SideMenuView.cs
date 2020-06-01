@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Xamarin.Forms;
 using static System.Math;
+using static Xamarin.Forms.Device;
 using System.ComponentModel;
 
 namespace SideMenu
@@ -22,9 +23,9 @@ namespace SideMenu
 
         private const double AcceptMoveThresholdPercentage = 0.3;
 
-        private static readonly Easing AnimationEasing = Easing.SinIn;
+        private static readonly Easing AnimationEasing = Easing.CubicInOut;
 
-        private static readonly TimeSpan SwipeThresholdTime = TimeSpan.FromMilliseconds(Device.RuntimePlatform == Device.Android ? 100 : 60);
+        private static readonly TimeSpan SwipeThresholdTime = TimeSpan.FromMilliseconds(RuntimePlatform == Android ? 100 : 60);
 
         #endregion
 
@@ -38,9 +39,14 @@ namespace SideMenu
 
         public static readonly BindableProperty ShouldThrottleGestureProperty = BindableProperty.Create(nameof(ShouldThrottleGesture), typeof(bool), typeof(SideMenuView), false);
 
-        public static readonly BindableProperty StateProperty = BindableProperty.Create(nameof(State), typeof(SideMenuViewState), typeof(SideMenuView), SideMenuViewState.Default);
+        public static readonly BindableProperty StateProperty = BindableProperty.Create(nameof(State), typeof(SideMenuViewState), typeof(SideMenuView), SideMenuViewState.Default, BindingMode.TwoWay,
+            propertyChanged: (bindable, oldValue, newValue) => ((SideMenuView)bindable).PerformAnimation(false));
 
         public static readonly BindableProperty PlaceProperty = BindableProperty.CreateAttached(nameof(GetPlace), typeof(SideMenuViewPlace), typeof(SideMenuView), SideMenuViewPlace.MainView);
+
+        public static readonly BindableProperty MenuWidthPercentageProperty = BindableProperty.CreateAttached(nameof(GetMenuWidthPercentage), typeof(double), typeof(SideMenuView), -1.0);
+
+        public static readonly BindableProperty MenuGestureEnabledProperty = BindableProperty.CreateAttached(nameof(GetMenuGestureEnabled), typeof(bool), typeof(SideMenuView), true);
 
         #endregion
 
@@ -49,6 +55,8 @@ namespace SideMenu
         private readonly PanGestureRecognizer _panGesture = new PanGestureRecognizer();
 
         private readonly List<TimeDiffItem> _timeDiffItems = new List<TimeDiffItem>();
+
+        private readonly View _overlayView;
 
         private View _mainView;
 
@@ -72,12 +80,23 @@ namespace SideMenu
 
         public SideMenuView()
         {
-            if (Device.RuntimePlatform == Device.Android)
+            if (RuntimePlatform == Android)
             {
                 return;
             }
             _panGesture.PanUpdated += OnPanUpdated;
             GestureRecognizers.Add(_panGesture);
+            Children.Add(_overlayView = _overlayView = SetupMainViewLayout(new BoxView
+            {
+                IsVisible = false,
+                GestureRecognizers =
+                {
+                    new TapGestureRecognizer
+                    {
+                        Command = new Command(() => State = SideMenuViewState.Default)
+                    }
+                }
+            }));
         }
 
         #endregion
@@ -108,7 +127,7 @@ namespace SideMenu
                     return;
                 case GestureStatus.Canceled:
                 case GestureStatus.Completed:
-                    if (Device.RuntimePlatform == Device.Android)
+                    if (RuntimePlatform == Android)
                     {
                         OnTouchChanged(diff, verticalDiff);
                     }
@@ -120,14 +139,18 @@ namespace SideMenu
         [EditorBrowsable(EditorBrowsableState.Never)]
         public async void OnSwiped(SwipeDirection swipeDirection)
         {
+            if(RuntimePlatform == Android)
+            {
+                return;
+            }
+
             await Task.Delay(1);
             if (_isGestureStarted)
             {
                 return;
             }
 
-            State = ResolveSwipeState(swipeDirection == SwipeDirection.Right);
-            PerformAnimation();
+            UpdateState(ResolveSwipeState(swipeDirection == SwipeDirection.Right), true);
         }
 
         #endregion
@@ -170,6 +193,18 @@ namespace SideMenu
         public static void SetPlace(BindableObject bindable, SideMenuViewPlace value)
             => bindable.SetValue(PlaceProperty, value);
 
+        public static double GetMenuWidthPercentage(BindableObject bindable)
+            => (double)bindable.GetValue(MenuWidthPercentageProperty);
+
+        public static void SetMenuWidthPercentage(BindableObject bindable, double value)
+            => bindable.SetValue(MenuWidthPercentageProperty, value);
+
+        public static bool GetMenuGestureEnabled(BindableObject bindable)
+            => (bool)bindable.GetValue(MenuGestureEnabledProperty);
+
+        public static void SetMenuGestureEnabled(BindableObject bindable, bool value)
+            => bindable.SetValue(MenuGestureEnabledProperty, value);
+
         #endregion
 
         #region Protected Overriden Methods
@@ -194,6 +229,7 @@ namespace SideMenu
                 return;
             }
             RaiseChild(_mainView);
+            RaiseChild(_overlayView);
         }
 
         #endregion
@@ -236,7 +272,7 @@ namespace SideMenu
 
             _mainView.AbortAnimation(AnimationName);
             var totalDiff = PreviousDiff + diff;
-            if (!UpdateDiff(totalDiff - _zeroDiff, false))
+            if (!TryUpdateDiff(totalDiff - _zeroDiff, false))
             {
                 _zeroDiff = totalDiff - Diff;
             }
@@ -250,27 +286,40 @@ namespace SideMenu
             }
             _isGestureStarted = false;
             CleanDiffItems();
-            if (TryResolveFlingGesture(out SideMenuViewState state))
-            {
-                State = state;
-            }
+
             PreviousDiff = Diff;
-            PerformAnimation();
+            var state = State;
+            var isSwipe = TryResolveFlingGesture(ref state);
+            PopulateDiffItems(0);
+            _timeDiffItems.Clear();
+            UpdateState(state, isSwipe);
         }
 
-        private void PerformAnimation()
+        private void PerformAnimation(bool isSwipe)
         {
-            var menuWidth = _activeMenu?.Width ?? double.PositiveInfinity;
+            var menuWidth = _activeMenu?.Width ?? Width;
             var start = Diff;
-            var end = Sign((int)State) * menuWidth;
+            var state = State;
+            var end = Sign((int)state) * menuWidth;
 
-            var length = (uint)(AnimationLength * Abs(start - end) / menuWidth);
-            if(length == 0)
+            var animationLength = (uint)(AnimationLength * Abs(start - end) / menuWidth);
+            if (isSwipe)
+            {
+                animationLength /= 2;
+            }
+            if (animationLength == 0)
             {
                 return;
             }
-            _mainView.Animate(AnimationName,
-                new Animation(v => UpdateDiff(v, true), Diff, end), AnimationRate, length, AnimationEasing);
+            var animation = new Animation(v => TryUpdateDiff(v, true), Diff, end);
+            _mainView.Animate(AnimationName, animation, AnimationRate, animationLength, AnimationEasing, (v, isCanceled) =>
+            {
+                if (isCanceled)
+                {
+                    return;
+                }
+                _overlayView.IsVisible = state != SideMenuViewState.Default;
+            });
         }
 
         private SideMenuViewState ResolveSwipeState(bool isRightSwipe)
@@ -291,27 +340,32 @@ namespace SideMenu
             return isRightSwipe ? left : right;
         }
 
-        private bool UpdateDiff(double diff, bool shouldUpdatePreviousDiff) {
-            diff = Sign(diff) * Min(Abs(diff), _activeMenu?.Width ?? 0);
+        private bool TryUpdateDiff(double diff, bool shouldUpdatePreviousDiff) {
             SetActiveView(diff >= 0);
+            if(_activeMenu == null || !GetMenuGestureEnabled(_activeMenu))
+            {
+                return false;
+            }
+            diff = Sign(diff) * Min(Abs(diff), _activeMenu.Width);
             if (Abs(Diff - diff) <= double.Epsilon)
             {
                 return false;
             }
             Diff = diff;
-            SetState(diff);
+            SetCurrentGestureState(diff);
             if (shouldUpdatePreviousDiff)
             {
                 PreviousDiff = diff;
             }
             _mainView.TranslationX = diff;
+            _overlayView.TranslationX = diff;
             return true;
         }
 
-        private void SetState(double diff)
+        private void SetCurrentGestureState(double diff)
         {
-            var menuWidth = _activeMenu?.Width ?? double.PositiveInfinity;
-            var moveThreshold = (_activeMenu?.Width ?? double.PositiveInfinity) * AcceptMoveThresholdPercentage;
+            var menuWidth = _activeMenu?.Width ?? Width;
+            var moveThreshold = menuWidth * AcceptMoveThresholdPercentage;
             var absDiff = Abs(diff);
             var state = State;
             if (Sign(diff) != (int)state)
@@ -332,6 +386,16 @@ namespace SideMenu
             CurrentGestureState = SideMenuViewState.RightMenuShown;
         }
 
+        private void UpdateState(SideMenuViewState state, bool isSwipe)
+        {
+            if (State == state)
+            {
+                PerformAnimation(isSwipe);
+                return;
+            }
+            State = state;
+        }
+
         private void SetActiveView(bool isLeft)
         {
             _activeMenu = _leftMenu;
@@ -341,30 +405,31 @@ namespace SideMenu
                 _activeMenu = _rightMenu;
                 _inactiveMenu = _leftMenu;
             }
-            if (_inactiveMenu != null && _activeMenu != null)
+            if (_inactiveMenu == null ||
+                _activeMenu == null ||
+                _leftMenu.X + _leftMenu.Width <= _rightMenu.X ||
+                Children.IndexOf(_inactiveMenu) < Children.IndexOf(_activeMenu))
             {
-                LowerChild(_inactiveMenu);
+                return;
             }
+            LowerChild(_inactiveMenu);
         }
 
-        private bool TryResolveFlingGesture(out SideMenuViewState state)
+        private bool TryResolveFlingGesture(ref SideMenuViewState state)
         {
-            state = CurrentGestureState;
-            if (State != state)
+            if (state != CurrentGestureState)
             {
-                return true;
+                state = CurrentGestureState;
+                return false;
             }
 
-            var lastItem = _timeDiffItems.LastOrDefault();
-            var firstItem = _timeDiffItems.FirstOrDefault();
-            var count = _timeDiffItems.Count;
-            _timeDiffItems.Clear();
-
-            if (count < 2)
+            if (_timeDiffItems.Count < 2)
             {
                 return false;
             }
 
+            var lastItem = _timeDiffItems.LastOrDefault();
+            var firstItem = _timeDiffItems.FirstOrDefault();
             var distDiff = lastItem.Diff - firstItem.Diff;
 
             if (Sign(distDiff) != Sign(lastItem.Diff))
@@ -389,7 +454,6 @@ namespace SideMenu
         private void PopulateDiffItems(double diff)
         {
             CurrentGestureDiff = diff;
-            var timeNow = DateTime.UtcNow;
 
             if (_timeDiffItems.Count >= 25)
             {
@@ -398,7 +462,7 @@ namespace SideMenu
 
             _timeDiffItems.Add(new TimeDiffItem
             {
-                Time = timeNow,
+                Time = DateTime.UtcNow,
                 Diff = diff
             });
         }
@@ -421,13 +485,13 @@ namespace SideMenu
             switch (GetPlace(view))
             {
                 case SideMenuViewPlace.MainView:
-                    SetupMainViewLayout(_mainView = view);
+                    _mainView = SetupMainViewLayout(view);
                     break;
                 case SideMenuViewPlace.LeftMenu:
-                    SetupMenuLayout(_leftMenu = view, true);
+                    _leftMenu = SetupMenuLayout(view, true);
                     break;
                 case SideMenuViewPlace.RightMenu:
-                    SetupMenuLayout(_rightMenu = view, false);
+                    _rightMenu = SetupMenuLayout(view, false);
                     break;
                 default:
                     return;
@@ -458,16 +522,22 @@ namespace SideMenu
             }
         }
 
-        private void SetupMainViewLayout(View view)
+        private View SetupMainViewLayout(View view)
         {
             SetLayoutFlags(view, AbsoluteLayoutFlags.All);
             SetLayoutBounds(view, new Rectangle(0, 0, 1, 1));
+            return view;
         }
 
-        private void SetupMenuLayout(View view, bool isLeft)
+        private View SetupMenuLayout(View view, bool isLeft)
         {
-            SetLayoutFlags(view, AbsoluteLayoutFlags.PositionProportional | AbsoluteLayoutFlags.HeightProportional);
-            SetLayoutBounds(view, new Rectangle(isLeft ? 0: 1, 0, -1, 1));
+            var width = GetMenuWidthPercentage(view);
+            var flags = width > 0
+                ? AbsoluteLayoutFlags.All
+                : AbsoluteLayoutFlags.PositionProportional | AbsoluteLayoutFlags.HeightProportional;
+            SetLayoutFlags(view, flags);
+            SetLayoutBounds(view, new Rectangle(isLeft ? 0: 1, 0, width, 1));
+            return view;
         }
 
         #endregion

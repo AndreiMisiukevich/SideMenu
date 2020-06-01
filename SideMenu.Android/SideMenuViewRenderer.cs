@@ -175,14 +175,14 @@ namespace SideMenu.Android
         private float GetTotalY(MotionEvent ev) => (ev.GetY() - _startY.GetValueOrDefault()) / Context.Resources.DisplayMetrics.Density;
 
         private void SetGestureDetector()
-            => _gestureDetector = new GestureDetector(Context, new CardsGestureListener(OnSwiped));
+            => _gestureDetector = new GestureDetector(Context, new SideMenuGestureListener(OnSwiped));
     }
 
-    public class CardsGestureListener : GestureDetector.SimpleOnGestureListener
+    public class SideMenuGestureListener : GestureDetector.SimpleOnGestureListener
     {
         private readonly Action<SwipeDirection> _onSwiped;
 
-        public CardsGestureListener(Action<SwipeDirection> onSwiped)
+        public SideMenuGestureListener(Action<SwipeDirection> onSwiped)
             => _onSwiped = onSwiped;
 
         public override bool OnFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY)

@@ -4,10 +4,14 @@
              xmlns:side="clr-namespace:SideMenu;assembly=SideMenu"
              x:Class="SideMenuSample.MainPage">
 
-    <side:SideMenuView>
+    <side:SideMenuView x:Name="SideMenu">
         <!--MainView-->
-        <ScrollView BackgroundColor="Black">
+        <ScrollView BackgroundColor="White">
             <StackLayout HeightRequest="2000">
+                <StackLayout Orientation="Horizontal">
+                    <Button Text="LEFT" Clicked="OnLeftButtonClicked"/>
+                    <Button Text="RIGHT" Clicked="OnRightButtonClicked" HorizontalOptions="EndAndExpand"/>
+                </StackLayout>
             </StackLayout>
         </ScrollView>
         <!--LeftMenu-->
@@ -15,7 +19,7 @@
                     BackgroundColor="Orange"
                     WidthRequest="250">
             <StackLayout HeightRequest="2000">
-
+                <Button Text="RIGHT" Clicked="OnRightButtonClicked" />
             </StackLayout>
         </ScrollView>
         <!--RightMenu-->
@@ -23,7 +27,7 @@
                     BackgroundColor="Gold"
                     WidthRequest="250">
             <StackLayout HeightRequest="2000">
-
+                <Button Text="LEFT" Clicked="OnLeftButtonClicked" />
             </StackLayout>
         </ScrollView>
     </side:SideMenuView>

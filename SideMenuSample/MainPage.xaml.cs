@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SideMenu;
 using Xamarin.Forms;
 
 namespace SideMenuSample
@@ -16,6 +17,16 @@ namespace SideMenuSample
         public MainPage()
         {
             InitializeComponent();
+        }
+
+        private void OnLeftButtonClicked(object sender, EventArgs e)
+        {
+            SideMenu.State = SideMenuViewState.LeftMenuShown;
+        }
+
+        private void OnRightButtonClicked(object sender, EventArgs e)
+        {
+            SideMenu.State = SideMenuViewState.RightMenuShown;
         }
     }
 }
