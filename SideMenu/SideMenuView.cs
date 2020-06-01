@@ -80,13 +80,7 @@ namespace SideMenu
 
         public SideMenuView()
         {
-            if (RuntimePlatform == Android)
-            {
-                return;
-            }
-            _panGesture.PanUpdated += OnPanUpdated;
-            GestureRecognizers.Add(_panGesture);
-            Children.Add(_overlayView = _overlayView = SetupMainViewLayout(new BoxView
+            _overlayView = SetupMainViewLayout(new BoxView
             {
                 IsVisible = false,
                 GestureRecognizers =
@@ -96,7 +90,16 @@ namespace SideMenu
                         Command = new Command(() => State = SideMenuViewState.Default)
                     }
                 }
-            }));
+            });
+            Children.Add(_overlayView);
+
+            if (RuntimePlatform == Android)
+            {
+                return;
+            }
+
+            _panGesture.PanUpdated += OnPanUpdated;
+            GestureRecognizers.Add(_panGesture);
         }
 
         #endregion

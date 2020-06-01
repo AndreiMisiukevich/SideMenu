@@ -14,13 +14,11 @@ namespace SideMenu.Android
     [Preserve(AllMembers = true)]
     public class SideMenuViewRenderer : VisualElementRenderer<SideMenuView>
     {
+        internal static int SwipeThreshold { get; set; } = 100;
+
+        internal static int SwipeVelocityThreshold { get; set; } = 1200;
+
         private static Guid? _lastTouchHandlerId;
-
-        public static int SwipeThreshold { get; set; } = 100;
-
-        public static int SwipeVelocityThreshold { get; set; } = 1200;
-
-        private int _gestureId;
 
         private Guid _elementId;
 
@@ -168,7 +166,7 @@ namespace SideMenu.Android
         private void OnSwiped(SwipeDirection swipeDirection) => Element.OnSwiped(swipeDirection);
 
         private PanUpdatedEventArgs GetPanUpdatedEventArgs(GestureStatus status, double totalX = 0, double totalY = 0)
-            => new PanUpdatedEventArgs(status, _gestureId, totalX, totalY);
+            => new PanUpdatedEventArgs(status, 0, totalX, totalY);
 
         private float GetTotalX(MotionEvent ev) => (ev.GetX() - _startX.GetValueOrDefault()) / Context.Resources.DisplayMetrics.Density;
 
