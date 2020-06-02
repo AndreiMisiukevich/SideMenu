@@ -60,6 +60,8 @@ Look at Xaml for more info.
 </ContentPage>
 ```
 
+Sample: https://github.com/AndreiMisiukevich/SideMenu/blob/master/SideMenuSample/MainPage.xaml
+
 ## License
 The MIT License (MIT) see [License file](LICENSE)
 
