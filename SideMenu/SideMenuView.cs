@@ -88,7 +88,7 @@ namespace SideMenu
         {
             _overlayView = SetupMainViewLayout(new BoxView
             {
-                InputTransparent = false,
+                InputTransparent = true,
                 GestureRecognizers =
                 {
                     new TapGestureRecognizer
@@ -306,16 +306,16 @@ namespace SideMenu
 
         private void PerformAnimation()
         {
-            var menuWidth = _activeMenu?.Width ?? Width;
-            var start = Diff;
             var state = State;
+            var start = Diff;
+            var menuWidth = (state == SideMenuViewState.LeftMenuShown ? _leftMenu : _rightMenu)?.Width ?? 0;
             var end = Sign((int)state) * menuWidth;
 
-            var animationLength = (uint)(AnimationLength * Abs(start - end) / menuWidth);
+            var animationLength = (uint)(AnimationLength * Abs(start - end) / Width);
             if (_isSwipe)
             {
                 _isSwipe = false;
-                animationLength = (uint)(animationLength / 2);
+                animationLength /= 2;
             }
             if (animationLength == 0)
             {
