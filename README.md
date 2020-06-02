@@ -19,6 +19,13 @@
 |.NET Standard|2.0+|
 
 
+1) Create SideMenuView
+2) Add children elements
+3) Use **SideMenuView.Place** attached property for determining if an element is **MainView** (default value), **LeftMenu** or **RightMenu**.
+4) Use **side:SideMenuView.MenuWidthPercentage** or **WidthRequest** for determining side menu size.
+5) MainView element **must** have BackgroundColor set up (for example set **White**).
+Look at Xaml for more info.
+
 **XAML:**
 ```xaml
 <?xml version="1.0" encoding="utf-8"?>
@@ -30,7 +37,7 @@
              x:Class="SideMenuSample.MainPage">
 
     <side:SideMenuView x:Name="SideMenu">
-        <!--MainView-->
+        <!--MainView with White Background Color-->
         <ContentView BackgroundColor="White">
           <!-- MainView Content -->
         </ContentView>
