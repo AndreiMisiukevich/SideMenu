@@ -23,7 +23,7 @@ namespace SideMenu
 
         private const double AcceptMoveThresholdPercentage = 0.3;
 
-        private static readonly Easing AnimationEasing = Easing.CubicInOut;
+        private static readonly Easing AnimationEasing = Easing.SinOut;
 
         private static readonly TimeSpan SwipeThresholdTime = TimeSpan.FromMilliseconds(RuntimePlatform == Android ? 100 : 60);
 
@@ -311,7 +311,7 @@ namespace SideMenu
             if (_isSwipe)
             {
                 _isSwipe = false;
-                animationLength /= 2;
+                animationLength = (uint)(animationLength * 2.5);
             }
             if (animationLength == 0)
             {
