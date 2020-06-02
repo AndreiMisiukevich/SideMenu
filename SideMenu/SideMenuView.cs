@@ -40,7 +40,7 @@ namespace SideMenu
         public static readonly BindableProperty ShouldThrottleGestureProperty = BindableProperty.Create(nameof(ShouldThrottleGesture), typeof(bool), typeof(SideMenuView), false);
 
         public static readonly BindableProperty StateProperty = BindableProperty.Create(nameof(State), typeof(SideMenuViewState), typeof(SideMenuView), SideMenuViewState.Default, BindingMode.TwoWay,
-            propertyChanged: (bindable, oldValue, newValue) => ((SideMenuView)bindable).PerformAnimation(false));
+            propertyChanged: (bindable, oldValue, newValue) => ((SideMenuView)bindable).PerformAnimation());
 
         public static readonly BindableProperty PlaceProperty = BindableProperty.CreateAttached(nameof(GetPlace), typeof(SideMenuViewPlace), typeof(SideMenuView), SideMenuViewPlace.MainView);
 
@@ -73,6 +73,8 @@ namespace SideMenu
         private bool _isGestureStarted;
 
         private bool _isGestureDirectionResolved;
+
+        private bool _isSwipe;
 
         #endregion
 
@@ -298,7 +300,7 @@ namespace SideMenu
             UpdateState(state, isSwipe);
         }
 
-        private void PerformAnimation(bool isSwipe)
+        private void PerformAnimation()
         {
             var menuWidth = _activeMenu?.Width ?? Width;
             var start = Diff;
@@ -306,8 +308,9 @@ namespace SideMenu
             var end = Sign((int)state) * menuWidth;
 
             var animationLength = (uint)(AnimationLength * Abs(start - end) / menuWidth);
-            if (isSwipe)
+            if (_isSwipe)
             {
+                _isSwipe = false;
                 animationLength /= 2;
             }
             if (animationLength == 0)
@@ -391,9 +394,10 @@ namespace SideMenu
 
         private void UpdateState(SideMenuViewState state, bool isSwipe)
         {
+            _isSwipe = isSwipe;
             if (State == state)
             {
-                PerformAnimation(isSwipe);
+                PerformAnimation();
                 return;
             }
             State = state;
