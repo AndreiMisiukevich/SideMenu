@@ -25,10 +25,12 @@ namespace SideMenu.iOS
             {
                 Direction = UISwipeGestureRecognizerDirection.Left
             };
+            AddGestureRecognizer(_leftSwipeGesture);
             _rightSwipeGesture = new UISwipeGestureRecognizer(OnSwiped)
             {
                 Direction = UISwipeGestureRecognizerDirection.Right
             };
+            AddGestureRecognizer(_rightSwipeGesture);
         }
 
         public override void AddGestureRecognizer(UIGestureRecognizer gestureRecognizer)
@@ -42,31 +44,24 @@ namespace SideMenu.iOS
             }
         }
 
-        protected override void OnElementChanged(ElementChangedEventArgs<SideMenuView> e)
-        {
-            base.OnElementChanged(e);
-            if(e.OldElement != null)
-            {
-                RemoveGestureRecognizer(_leftSwipeGesture);
-                RemoveGestureRecognizer(_rightSwipeGesture);
-            }
-            if (e.NewElement != null)
-            {
-                AddGestureRecognizer(_leftSwipeGesture);
-                AddGestureRecognizer(_rightSwipeGesture);
-            }
-        }
-
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
-                _leftSwipeGesture?.Dispose();
-                _rightSwipeGesture?.Dispose();
-                _leftSwipeGesture = null;
-                _rightSwipeGesture = null;
+                Dispose(ref _leftSwipeGesture);
+                Dispose(ref _rightSwipeGesture);
             }
             base.Dispose(disposing);
+        }
+
+        private void Dispose(ref UISwipeGestureRecognizer gestureRecognizer)
+        {
+            if (gestureRecognizer != null)
+            {
+                RemoveGestureRecognizer(gestureRecognizer);
+                gestureRecognizer.Dispose();
+                gestureRecognizer = null;
+            }
         }
 
         private void OnSwiped(UISwipeGestureRecognizer gesture)

@@ -2,33 +2,79 @@
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:side="clr-namespace:SideMenu;assembly=SideMenu"
+             x:Name="Page"
+             Title="SIDE MENU SAMPLE"
              x:Class="SideMenuSample.MainPage">
 
     <side:SideMenuView x:Name="SideMenu">
         <!--MainView-->
-        <ScrollView BackgroundColor="White">
-            <StackLayout HeightRequest="2000">
-                <StackLayout Orientation="Horizontal">
-                    <Button Text="LEFT" Clicked="OnLeftButtonClicked"/>
-                    <Button Text="RIGHT" Clicked="OnRightButtonClicked" HorizontalOptions="EndAndExpand"/>
-                </StackLayout>
+        <AbsoluteLayout BackgroundColor="White">
+            <CollectionView
+                AbsoluteLayout.LayoutFlags="All"
+                AbsoluteLayout.LayoutBounds="0, 0, 1, 1"
+                ItemsSource="{Binding Items, Source={x:Reference Page}}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <AbsoluteLayout HeightRequest="60" BackgroundColor="{Binding Color}">
+                            <Label Text="{Binding Text}"
+                                   TextColor="Black"
+                                   FontAttributes="Bold"
+                                   FontSize="30"
+                                   AbsoluteLayout.LayoutFlags="PositionProportional"
+                                   AbsoluteLayout.LayoutBounds=".5, .5, -1, -1" />
+                            <BoxView Color="Black"
+                                     VerticalOptions="EndAndExpand"
+                                     AbsoluteLayout.LayoutFlags="PositionProportional,WidthProportional"
+                                     AbsoluteLayout.LayoutBounds="0, 1, 1, 2" />
+                        </AbsoluteLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <StackLayout Orientation="Horizontal"
+                         Padding="15, 10"
+                         AbsoluteLayout.LayoutFlags="WidthProportional"
+                         AbsoluteLayout.LayoutBounds="0, 0, 1, -1">
+                <Button Text="|||"
+                        TextColor="White"
+                        BackgroundColor="Black"
+                        WidthRequest="40"
+                        HeightRequest="40"
+                        CornerRadius="20"
+                        VerticalOptions="Center"
+                        FontSize="25"
+                        Clicked="OnLeftButtonClicked"/>
+                <Button Text="|||"
+                        TextColor="White"
+                        BackgroundColor="Black"
+                        WidthRequest="40"
+                        HeightRequest="40"
+                        CornerRadius="20"
+                        VerticalOptions="Center"
+                        FontSize="25"
+                        HorizontalOptions="EndAndExpand"
+                        Clicked="OnRightButtonClicked" />
             </StackLayout>
-        </ScrollView>
+        </AbsoluteLayout>
+
         <!--LeftMenu-->
         <ScrollView side:SideMenuView.Place="LeftMenu"
-                    BackgroundColor="Orange"
-                    WidthRequest="250">
+                    side:SideMenuView.MenuWidthPercentage="0.5"
+                    BackgroundColor="Orange">
             <StackLayout HeightRequest="2000">
-                <Button Text="RIGHT" Clicked="OnRightButtonClicked" />
+                <Button Text="TO RIGHT" FontSize="25" Clicked="OnRightButtonClicked" />
             </StackLayout>
         </ScrollView>
+
         <!--RightMenu-->
         <ScrollView side:SideMenuView.Place="RightMenu"
-                    BackgroundColor="Gold"
-                    side:SideMenuView.MenuWidthPercentage="0.3">
+                    side:SideMenuView.MenuWidthPercentage="0.35"
+                    BackgroundColor="Gold">
             <StackLayout HeightRequest="2000">
-                <Button Text="LEFT" Clicked="OnLeftButtonClicked" />
+                <Button Text="TO LEFT" FontSize="25" Clicked="OnLeftButtonClicked" />
             </StackLayout>
-        </ScrollView>
+        </ScrollView> 
+
     </side:SideMenuView>
+
 </ContentPage>
