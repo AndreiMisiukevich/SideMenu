@@ -315,7 +315,7 @@ namespace SideMenu
             if (_isSwipe)
             {
                 _isSwipe = false;
-                animationLength = (uint)(animationLength * 2.5);
+                animationLength = (uint)(animationLength / 2);
             }
             if (animationLength == 0)
             {

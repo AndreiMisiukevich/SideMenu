@@ -25,7 +25,7 @@
         <!--RightMenu-->
         <ScrollView side:SideMenuView.Place="RightMenu"
                     BackgroundColor="Gold"
-                    WidthRequest="250">
+                    side:SideMenuView.MenuWidthPercentage="0.3">
             <StackLayout HeightRequest="2000">
                 <Button Text="LEFT" Clicked="OnLeftButtonClicked" />
             </StackLayout>
