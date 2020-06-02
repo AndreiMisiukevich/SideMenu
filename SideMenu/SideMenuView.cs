@@ -42,6 +42,10 @@ namespace SideMenu
         public static readonly BindableProperty StateProperty = BindableProperty.Create(nameof(State), typeof(SideMenuViewState), typeof(SideMenuView), SideMenuViewState.Default, BindingMode.TwoWay,
             propertyChanged: (bindable, oldValue, newValue) => ((SideMenuView)bindable).PerformAnimation());
 
+        #endregion
+
+        #region Public Attached Properties
+
         public static readonly BindableProperty PlaceProperty = BindableProperty.CreateAttached(nameof(GetPlace), typeof(SideMenuViewPlace), typeof(SideMenuView), SideMenuViewPlace.MainView);
 
         public static readonly BindableProperty MenuWidthPercentageProperty = BindableProperty.CreateAttached(nameof(GetMenuWidthPercentage), typeof(double), typeof(SideMenuView), -1.0);
@@ -84,7 +88,7 @@ namespace SideMenu
         {
             _overlayView = SetupMainViewLayout(new BoxView
             {
-                IsVisible = false,
+                InputTransparent = false,
                 GestureRecognizers =
                 {
                     new TapGestureRecognizer
@@ -324,7 +328,7 @@ namespace SideMenu
                 {
                     return;
                 }
-                _overlayView.IsVisible = state != SideMenuViewState.Default;
+                _overlayView.InputTransparent = state == SideMenuViewState.Default;
             });
         }
 
