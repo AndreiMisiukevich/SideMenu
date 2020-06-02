@@ -50,7 +50,7 @@
 
     <!--Xamarin.Android-->
     <file src="SideMenu\bin\Release\netstandard2.1\SideMenu.dll" target="lib\MonoAndroid10\SideMenu.dll" />
-    <file src="SideMenu.Droid\bin\Release\SideMenu.Droid.dll" target="lib\MonoAndroid10\SideMenu.Droid.dll" />
+    <file src="SideMenu.Android\bin\Release\SideMenu.Android.dll" target="lib\MonoAndroid10\SideMenu.Android.dll" />
 
     <!--Xamarin.iOS-->
     <file src="SideMenu\bin\Release\netstandard2.1\SideMenu.dll" target="lib\Xamarin.iOS10\SideMenu.dll" />
