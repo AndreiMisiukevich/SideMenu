@@ -1,4 +1,5 @@
 ## SideMenu
+![](https://github.com/AndreiMisiukevich/SideMenu/blob/master/images/gif.gif?raw=true)
 
 ## Setup
 * Available on NuGet: [SideMenu](http://www.nuget.org/packages/SideMenu) [![NuGet](https://img.shields.io/nuget/v/SideMenu.svg?label=NuGet)](https://www.nuget.org/packages/SideMenu)
