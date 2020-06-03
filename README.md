@@ -4,9 +4,9 @@
 ## Setup
 * Available on NuGet: [SideMenu](http://www.nuget.org/packages/SideMenu) [![NuGet](https://img.shields.io/nuget/v/SideMenu.svg?label=NuGet)](https://www.nuget.org/packages/SideMenu)
 * Add nuget package to your Xamarin.Forms .NETSTANDARD/PCL project and to your platform-specific projects
-* Add (**AFTER** ```Forms.Init(...)```):
-  - **SideMenuViewRenderer.Preserve()** AppDelegate in **FinishedLaunching** for **iOS** 
-  - **SideMenuViewRenderer.Preserve()** MainActivity in **OnCreate** for **Android**
+* Add **SideMenuViewRenderer.Preserve()** AFTER ```Forms.Init(...)```:
+  - **iOS**: **FinishedLaunching** in AppDelegate
+  - **Android**: **OnCreate** in MainActivity
 
 |Platform|Version|
 | ------------------- | :-----------: |
@@ -45,8 +45,7 @@ Look at Xaml for more info.
 
         <!-- Left Menu has 50% width of Main Content width-->
         <ScrollView side:SideMenuView.Place="LeftMenu"
-                    side:SideMenuView.MenuWidthPercentage="0.5"
-                    BackgroundColor="Orange">
+                    side:SideMenuView.MenuWidthPercentage="0.5">
             <!-- LeftMenu Content -->
         </ScrollView>
 
