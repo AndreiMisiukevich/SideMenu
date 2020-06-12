@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>SideMenu</id>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <title>SideMenu</title>
     <authors>Andrei Misiukevich</authors>
     <owners>Andrei Misiukevich</owners>
@@ -57,27 +57,27 @@
     <file src="SideMenu.iOS\bin\Release\SideMenu.iOS.dll" target="lib\Xamarin.iOS10\SideMenu.iOS.dll" />
 
     <!--Xamarin.Mac-->
-    <file src="SideMenu\bin\Release\netstandard2.1\SideMenu.dll" target="lib\Xamarin.Mac20\SideMenu.dll" />
+    <file src="SideMenu\bin\Release\netstandard2.0\SideMenu.dll" target="lib\Xamarin.Mac20\SideMenu.dll" />
 
     <!--Windows WinUWP-->
-    <file src="SideMenu\bin\Release\netstandard2.1\SideMenu.dll" target="lib\uap\SideMenu.dll" />
+    <file src="SideMenu\bin\Release\netstandard2.0\SideMenu.dll" target="lib\uap\SideMenu.dll" />
 
     <!--Windows WinRT-->
-    <file src="SideMenu\bin\Release\netstandard2.1\SideMenu.dll" target="lib\win81\SideMenu.dll" />
+    <file src="SideMenu\bin\Release\netstandard2.0\SideMenu.dll" target="lib\win81\SideMenu.dll" />
 
     <!--Windows RT Phone-->
-    <file src="SideMenu\bin\Release\netstandard2.1\SideMenu.dll" target="lib\wpa81\SideMenu.dll" />
+    <file src="SideMenu\bin\Release\netstandard2.0\SideMenu.dll" target="lib\wpa81\SideMenu.dll" />
 
     <!--Tizen-->
-    <file src="SideMenu\bin\Release\netstandard2.1\SideMenu.dll" target="lib\tizen40\SideMenu.dll" />
+    <file src="SideMenu\bin\Release\netstandard2.0\SideMenu.dll" target="lib\tizen40\SideMenu.dll" />
 
     <!--GTK-->
-    <file src="SideMenu\bin\Release\netstandard2.1\SideMenu.dll" target="lib\net46\SideMenu.dll" />
+    <file src="SideMenu\bin\Release\netstandard2.0\SideMenu.dll" target="lib\net46\SideMenu.dll" />
 
     <!--tvOS-->
-    <file src="SideMenu\bin\Release\netstandard2.1\SideMenu.dll" target="lib\XamarinTVOS\SideMenu.dll" />
+    <file src="SideMenu\bin\Release\netstandard2.0\SideMenu.dll" target="lib\XamarinTVOS\SideMenu.dll" />
       
     <!--Net 4.5-->
-    <file src="SideMenu\bin\Release\netstandard2.1\SideMenu.dll" target="lib\net45\SideMenu.dll" />
+    <file src="SideMenu\bin\Release\netstandard2.0\SideMenu.dll" target="lib\net45\SideMenu.dll" />
   </files>
 </package>
