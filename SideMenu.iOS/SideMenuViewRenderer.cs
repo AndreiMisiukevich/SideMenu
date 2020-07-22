@@ -4,7 +4,6 @@ using SideMenu.iOS;
 using UIKit;
 using Xamarin.Forms;
 using Xamarin.Forms.Platform.iOS;
-using System.ComponentModel;
 using static System.Math;
 
 [assembly: ExportRenderer(typeof(SideMenuView), typeof(SideMenuViewRenderer))]

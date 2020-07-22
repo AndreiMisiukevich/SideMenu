@@ -319,6 +319,7 @@ namespace SideMenu
             }
             if (animationLength == 0)
             {
+                SetOverlayViewInputTransparent(state);
                 return;
             }
             var animation = new Animation(v => TryUpdateDiff(v, true), Diff, end);
@@ -328,9 +329,12 @@ namespace SideMenu
                 {
                     return;
                 }
-                _overlayView.InputTransparent = state == SideMenuViewState.Default;
+                SetOverlayViewInputTransparent(state);
             });
         }
+
+        private void SetOverlayViewInputTransparent(SideMenuViewState state)
+            => _overlayView.InputTransparent = state == SideMenuViewState.Default;
 
         private SideMenuViewState ResolveSwipeState(bool isRightSwipe)
         {
