@@ -32,6 +32,9 @@ namespace SideMenu.iOS
             AddGestureRecognizer(_rightSwipeGesture);
         }
 
+        private bool IsPanGestureHandled
+            => Abs(Element?.CurrentGestureDiff ?? 0) >= Element?.GestureThreshold;
+
         public override void AddGestureRecognizer(UIGestureRecognizer gestureRecognizer)
         {
             base.AddGestureRecognizer(gestureRecognizer);
@@ -73,7 +76,7 @@ namespace SideMenu.iOS
         }
 
         private bool ShouldBeRequiredToFailBy(UIGestureRecognizer gestureRecognizer, UIGestureRecognizer otherGestureRecognizer)
-            => IsPanGestureHandled() && otherGestureRecognizer.View != this;
+            => IsPanGestureHandled && otherGestureRecognizer.View != this;
 
         private bool ShouldRecognizeSimultaneously(UIGestureRecognizer gestureRecognizer, UIGestureRecognizer otherGestureRecognizer)
         {
@@ -92,10 +95,7 @@ namespace SideMenu.iOS
                 }
                 parent = parent.Parent;
             }
-            return !IsPanGestureHandled();
+            return !IsPanGestureHandled;
         }
-
-        private bool IsPanGestureHandled()
-            => Abs(Element?.CurrentGestureDiff ?? 0) >= Element?.GestureThreshold;
     }
 }
