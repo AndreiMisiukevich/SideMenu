@@ -1,3 +1,7 @@
+# IMPORTANT: THIS CONTROL WAS MERGED INTO XamarinCommunityToolkit. I recomment to use it
+
+https://github.com/xamarin/XamarinCommunityToolkit
+
 ## SideMenu
 ![](https://github.com/AndreiMisiukevich/SideMenu/blob/master/images/gif.gif?raw=true)
 
